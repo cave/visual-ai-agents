@@ -37,6 +37,7 @@ open "/Applications/Agent Office.app"
 - On an Intel Mac the folder is `dist/Agent Office-darwin-x64`. The build prints the exact path when it finishes.
 - After that, open **Agent Office** from Applications, Launchpad or Spotlight like any other app. No terminal has to stay open.
 - The first time you click a computer, macOS asks whether Agent Office may control Terminal. Allow it, or the jump to the terminal tab will not work.
+- When a session finishes its turn or needs your answer while you are not looking at the app, you get a notification and the Dock icon shows how many are waiting. Opening the app clears the count; clicking a notification opens that session's desk. macOS asks once whether Agent Office may send notifications.
 - To update: `git pull`, then run the build and copy steps again (quit the app first).
 
 Or in a browser, with no install and no dependencies:
