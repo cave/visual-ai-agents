@@ -23,6 +23,22 @@ npm run build         # builds dist/Agent Office-<platform>/Agent Office.app to 
 
 In the app menu, **Open at Login** makes it start with your computer. Closing the window keeps the app in the Dock.
 
+### Install it as an app
+
+There is no download to install: you build the app once on your own machine. `npm install` fetches Electron for you, so nothing else is needed.
+
+```sh
+npm install
+npm run build
+cp -R "dist/Agent Office-darwin-arm64/Agent Office.app" /Applications/
+open "/Applications/Agent Office.app"
+```
+
+- On an Intel Mac the folder is `dist/Agent Office-darwin-x64`. The build prints the exact path when it finishes.
+- After that, open **Agent Office** from Applications, Launchpad or Spotlight like any other app. No terminal has to stay open.
+- The first time you click a computer, macOS asks whether Agent Office may control Terminal. Allow it, or the jump to the terminal tab will not work.
+- To update: `git pull`, then run the build and copy steps again (quit the app first).
+
 Or in a browser, with no install and no dependencies:
 
 ```sh
