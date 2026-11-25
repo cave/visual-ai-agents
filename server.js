@@ -1,4 +1,5 @@
-// Local Claude Code usage dashboard. Run: node server.js  ->  http://localhost:4747
+// Local Claude Code dashboard. Run: node server.js  ->  http://localhost:4747
+// The desktop app (main.js) loads this file and calls start() itself.
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -9,7 +10,7 @@ const { loadPricing, normalizeModel, costParts } = require('./lib/pricing');
 const office = require('./lib/office');
 const demo = require('./lib/demo');
 
-const PORT = Number(process.env.PORT) || 4747;
+let PORT = Number(process.env.PORT) || 4747; // the port actually in use once start() resolves
 const HOST = '127.0.0.1';
 const PUBLIC = path.join(__dirname, 'public');
 const HOME = os.homedir();
@@ -158,4 +159,31 @@ const server = http.createServer(async (req, res) => {
   });
 });
 
-server.listen(PORT, HOST, () => console.log(`Claude usage dashboard: http://localhost:${PORT}`));
+// Listen on the preferred port. With `fallback`, a busy port (say a copy already running in a terminal)
+// makes it take any free one instead of failing.
+function start({ port = PORT, fallback = false } = {}) {
+  return new Promise((resolve, reject) => {
+    const onError = (err) => {
+      if (fallback && err.code === 'EADDRINUSE' && port !== 0) {
+        port = 0;
+        server.listen(0, HOST);
+      } else reject(err);
+    };
+    server.on('error', onError);
+    server.once('listening', () => {
+      server.off('error', onError);
+      PORT = server.address().port;
+      resolve(PORT);
+    });
+    server.listen(port, HOST);
+  });
+}
+
+module.exports = { start };
+
+if (require.main === module) {
+  start().then(
+    (port) => console.log(`Claude dashboard: http://localhost:${port}  (office: /office)`),
+    (err) => { console.error(err.code === 'EADDRINUSE' ? `Port ${PORT} is already in use. Try PORT=5000 node server.js` : err); process.exit(1); },
+  );
+}

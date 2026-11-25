@@ -26,6 +26,7 @@
     <li><i class="dot done"></i>Waving: just finished, your turn</li>
     <li><i class="dot break"></i>Coffee: idle for hours</li>
     <li><i class="dot asleep"></i>Asleep: idle for over a day</li>
+    <li class="tip">Click a computer to open its terminal, or a robot for details.</li>
   </ul>
 
   <main id="stage" class="stage"><div id="floor" class="floor" aria-live="polite"></div></main>
@@ -35,6 +36,8 @@
     <div class="card-actions" id="card-actions"></div>
     <p class="card-note" id="card-note" role="status"></p>
   </dialog>
+
+  <div id="toast" class="toast" role="status" hidden></div>
 
   <script src="office.js"></script>
 </body>

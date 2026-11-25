@@ -195,3 +195,13 @@ p { margin: 0; }
 .confirm p { margin-bottom: 8px; }
 .confirm div { display: flex; gap: 8px; }
 .card-note { color: var(--ink-2); font-size: 13px; margin-top: 8px; min-height: 1.4em; }
+
+/* The computer on each desk is its own click target: it opens the session's terminal. */
+.computer { cursor: pointer; }
+.computer:hover rect { stroke: var(--done); stroke-width: 3; }
+.resting { pointer-events: none; } /* a sleeping head lies on the laptop; let clicks reach it */
+.legend .tip { color: var(--muted); }
+.toast {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 5; max-width: min(560px, calc(100vw - 32px));
+  background: var(--ink); color: var(--page); border-radius: 10px; padding: 10px 14px; font-size: 13px;
+}

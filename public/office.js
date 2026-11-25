@@ -66,12 +66,14 @@ function bot(s) {
   const rightArm = raised
     ? '<rect class="bot-shape wave" x="92" y="60" width="30" height="10" rx="5"/>'
     : '<rect class="bot-shape arm-r" x="85" y="34" width="10" height="34" rx="5"/>';
-  const laptop = asleep
+  const laptopParts = asleep
     ? '<rect x="52" y="10" width="36" height="24" rx="3" fill="var(--laptop)" stroke="var(--bot-line)" stroke-width="2"/>'
     : `<rect x="52" y="13" width="36" height="22" rx="3" fill="var(--laptop)" stroke="var(--bot-line)" stroke-width="2"/>
        <rect x="52" y="8" width="36" height="7" rx="2" fill="var(--face)" stroke="var(--bot-line)" stroke-width="2"/>
        <circle class="screen-glow" cx="70" cy="11.500" r="2" fill="${st === 'working' ? 'var(--working)' : 'var(--muted)'}"/>
        <path d="M58 21h24M58 26h24M60 31h20" stroke="var(--bot-line)" stroke-width="1.500" stroke-linecap="round" opacity="0.45"/>`;
+  // Clicking the computer jumps straight to the session's terminal (see the floor click handler).
+  const laptop = `<g class="computer"><title>Open its terminal</title>${laptopParts}</g>`;
   const mug = st === 'break'
     ? `<path class="line steam" d="M113 12q-3-3 0-6"/><path class="line steam" style="animation-delay:1.1s" d="M118 13q-3-3 0-6"/>
        <path class="line" d="M122 24h5"/>
@@ -87,7 +89,7 @@ function bot(s) {
        <circle class="blink" cx="22" cy="18" r="2.500" fill="var(--working)"/><path class="line" d="M21 26h14M28 18h7"/>`
     : '';
   const head = `
-    <g ${asleep ? 'transform="translate(3 -30) rotate(9 70 68)"' : ''}>
+    <g ${asleep ? 'class="resting" transform="translate(3 -30) rotate(9 70 68)"' : ''}>
       <rect class="bot-shape" x="51" y="50" width="38" height="34" rx="12"/>
       <rect x="57" y="52.500" width="26" height="7" rx="3.500" fill="var(--face)"/>
       ${asleep ? '' : '<circle cx="65" cy="56" r="1.700" fill="var(--eye)"/><circle cx="75" cy="56" r="1.700" fill="var(--eye)"/>'}
@@ -349,18 +351,13 @@ async function onCardClick(e) {
     }
     return;
   }
-  if (DEMO && (act === 'focus' || act === 'quit-yes')) {
+  if (DEMO && act === 'quit-yes') {
     confirming = false;
     note.textContent = 'This is demo data, so there is no real session to act on.';
     return renderCard();
   }
   if (act === 'focus') {
-    const r = await post('focus', openPid);
-    note.textContent = r.ok
-      ? 'Its Terminal tab is now in front.'
-      : r.reason === 'gone'
-        ? 'This session has already ended.'
-        : 'Couldn\'t find its tab in Terminal. Allow this app to control Terminal if macOS asked, or use the resume command.';
+    note.textContent = (await goToTerminal(openPid)) || 'Its Terminal tab is now in front.';
     return;
   }
   if (act === 'quit' || act === 'quit-no') {
@@ -418,9 +415,36 @@ $('theme').addEventListener('click', () => {
 });
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
 
-$('floor').addEventListener('click', (e) => {
+let toastTimer = null;
+function toast(text) {
+  $('toast').textContent = text;
+  $('toast').hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { $('toast').hidden = true; }, 5000);
+}
+
+// Bring a session's terminal tab to the front. Returns a sentence to show if it could not.
+async function goToTerminal(pid) {
+  const s = sessions.find((x) => x.pid === pid);
+  if (DEMO) return 'This is demo data, so there is no real terminal to open.';
+  if (s && (s.background || !s.tty)) return `“${s.name}” runs in the background and has no terminal tab. Open its desk for the resume command.`;
+  const r = await post('focus', pid);
+  if (r.ok) return '';
+  return r.reason === 'gone'
+    ? 'This session has already ended.'
+    : 'Couldn\'t find its tab in Terminal. If macOS asked for permission to control Terminal, allow it and try again.';
+}
+
+$('floor').addEventListener('click', async (e) => {
   const desk = e.target.closest('.desk');
-  if (desk) openCard(Number(desk.dataset.pid));
+  if (!desk) return;
+  const pid = Number(desk.dataset.pid);
+  if (e.target.closest('.computer')) {
+    const problem = await goToTerminal(pid);
+    if (problem) toast(problem);
+    return;
+  }
+  openCard(pid);
 });
 $('card').addEventListener('click', (e) => {
   if (e.target === $('card')) $('card').close(); // click on the backdrop

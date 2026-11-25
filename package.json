@@ -1,0 +1,17 @@
+{
+  "name": "visual-ai-agents",
+  "productName": "Agent Office",
+  "version": "1.0.0",
+  "description": "Local dashboard for Claude Code: every open session as a robot in an office, plus token usage and cost.",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "server": "node server.js",
+    "build": "electron-packager . \"Agent Office\" --out dist --overwrite --app-bundle-id=local.agent-office --ignore=\"^/(dist|docs|\\.impeccable|\\.playwright-mcp)($|/)\""
+  },
+  "devDependencies": {
+    "@electron/packager": "^20.3.0",
+    "electron": "^45.5.0"
+  }
+}
